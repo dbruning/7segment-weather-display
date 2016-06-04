@@ -1,5 +1,7 @@
 ﻿{
   "dependencies": {
+    "Glovebox.Graphics": "1.0.8",
+    "Glovebox.IoT.Devices": "1.0.17",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0"
   },
   "frameworks": {

@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
-    "Glovebox.IoT.Devices": "1.0.15",
-    "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0"
+    "Glovebox.IoT.Devices": "1.0.17",
+    "Microsoft.NETCore.UniversalWindowsPlatform": "5.1.0"
   },
   "frameworks": {
     "uap10.0": {}

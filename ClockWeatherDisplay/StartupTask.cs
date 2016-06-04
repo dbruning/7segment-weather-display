@@ -8,7 +8,6 @@ using Windows.ApplicationModel.Background;
 using Glovebox.Graphics.Components;
 using Glovebox.Graphics;
 using Glovebox.Graphics.Drivers;
-using Glovebox.IoT.Devices.Sensors;
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
 
@@ -29,7 +28,7 @@ namespace ClockWeatherDisplay
 
 			MAX7219 driver = new MAX7219(2);
 			SevenSegmentDisplay ssd = new SevenSegmentDisplay(driver);
-			BMP180 bmp = new BMP180(BMP180.Mode.HIGHRES);
+//			BMP180 bmp = new BMP180(BMP180.Mode.HIGHRES);
 
 			ssd.FrameClear();
 			ssd.FrameDraw();
@@ -37,7 +36,7 @@ namespace ClockWeatherDisplay
 
 			while (true)
 			{
-				temperature = bmp.Temperature.DegreesCelsius;
+//				temperature = bmp.Temperature.DegreesCelsius;
 
 				data.Clear();
 
@@ -45,7 +44,8 @@ namespace ClockWeatherDisplay
 				if (temperature < 100 && temperature != (int)temperature) { data.Append($"{Math.Round(temperature, 1)}C".PadRight(5)); }
 				else { data.Append($"{Math.Round(temperature, 0)}C".PadRight(4)); }
 
-				data.Append(Math.Round(bmp.Pressure.Hectopascals, 0));
+//				data.Append(Math.Round(bmp.Pressure.Hectopascals, 0));
+				data.Append(123);
 
 				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator
 

@@ -66,7 +66,12 @@ namespace ClockWeatherDisplay
 					// I dunno, log it or something?
 				}
 
-				Task.Delay(2000).Wait();
+				// Forecast.io app give yous first thousand calls per day for free.
+				// There are 86400 seconds in a day
+				// So we can call once every say 8.64 seconds and we'll be OK
+				// (although the call itself takes a few seconds)
+				// ... so let's update once per 30 seconds.
+				Task.Delay(30000).Wait();
 			}
 		}
 	}

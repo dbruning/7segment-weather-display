@@ -5,9 +5,11 @@ using System.Text;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
+using ForecastIOPortable;
 using Glovebox.Graphics.Components;
 using Glovebox.Graphics;
 using Glovebox.Graphics.Drivers;
+using ClockWeatherDisplay;
 
 // The Background Application template is documented at http://go.microsoft.com/fwlink/?LinkID=533884&clcid=0x409
 
@@ -28,7 +30,10 @@ namespace ClockWeatherDisplay
 
 			MAX7219 driver = new MAX7219(2);
 			SevenSegmentDisplay ssd = new SevenSegmentDisplay(driver);
-//			BMP180 bmp = new BMP180(BMP180.Mode.HIGHRES);
+
+			// I haven't committed my Settings class to the repo because it contains my latitude, longitude and forecast.io API key.
+			// If you're trying to make this work but get errors here, just make up a Settings class with properties Latitude, Longitude, ApiKey
+			var settings = new Settings();
 
 			ssd.FrameClear();
 			ssd.FrameDraw();
@@ -36,24 +41,30 @@ namespace ClockWeatherDisplay
 
 			while (true)
 			{
-//				temperature = bmp.Temperature.DegreesCelsius;
+				try {
+					var client = new ForecastApi(settings.ApiKey);
+					var result = client.GetWeatherDataAsync(settings.Latitude, settings.Longitude).Result;
 
-				data.Clear();
+					var currentTempToDisplay = result.Currently.Temperature.ToCelcius().ToString("00");
+					var dailyHighForecastTempDisplay= result.Daily.Days[0].MaxTemperature.ToCelcius().ToString("00");
+					var dailyLowForecastTempDisplay = result.Daily.Days[0].MinTemperature.ToCelcius().ToString("00");
 
-				// is temperature less than 3 digits and there is a decimal part too then right pad to 5 places as decimal point does not take up a digit space on the display
-				if (temperature < 100 && temperature != (int)temperature) { data.Append($"{Math.Round(temperature, 1)}C".PadRight(5)); }
-				else { data.Append($"{Math.Round(temperature, 0)}C".PadRight(4)); }
+					data.Clear();
+					data.Append(currentTempToDisplay);
+					data.Append("  ");
+					data.Append(dailyLowForecastTempDisplay);
+					data.Append(dailyHighForecastTempDisplay);
 
-//				data.Append(Math.Round(bmp.Pressure.Hectopascals, 0));
-				data.Append(123);
+	//				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator
 
-				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator
+					ssd.DrawString(data.ToString());
 
-				ssd.DrawString(data.ToString());
+					ssd.DrawString(count++, 1);
 
-				ssd.DrawString(count++, 1);
-
-				ssd.FrameDraw();
+					ssd.FrameDraw();
+				} catch (Exception e) {
+					// I dunno, log it or something?
+				}
 
 				Task.Delay(2000).Wait();
 			}

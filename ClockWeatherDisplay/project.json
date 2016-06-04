@@ -1,5 +1,6 @@
 ﻿{
   "dependencies": {
+    "ForecastIOPortable": "2.4.0",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.1.0"
   },
   "frameworks": {

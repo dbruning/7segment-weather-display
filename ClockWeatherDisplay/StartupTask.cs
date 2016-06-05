@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Http;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
 using ForecastIOPortable;
@@ -21,6 +22,9 @@ namespace ClockWeatherDisplay
 		double temperature;
 		bool blink = false;
 		StringBuilder data = new StringBuilder(40);
+		private string _currentTempToDisplay;
+		private string _dailyHighForecastTempDisplay;
+		private string _dailyLowForecastTempDisplay;
 
 		public void Run(IBackgroundTaskInstance taskInstance)
 		{
@@ -39,40 +43,49 @@ namespace ClockWeatherDisplay
 			ssd.FrameDraw();
 			ssd.SetBrightness(4);
 
-			while (true)
+			try
 			{
-				try {
-					var client = new ForecastApi(settings.ApiKey);
-					var result = client.GetWeatherDataAsync(settings.Latitude, settings.Longitude).Result;
-
-					var currentTempToDisplay = result.Currently.Temperature.ToCelcius().ToString("00");
-					var dailyHighForecastTempDisplay= result.Daily.Days[0].MaxTemperature.ToCelcius().ToString("00");
-					var dailyLowForecastTempDisplay = result.Daily.Days[0].MinTemperature.ToCelcius().ToString("00");
-
-					data.Clear();
-					data.Append(currentTempToDisplay);
-					data.Append("  ");
-					data.Append(dailyLowForecastTempDisplay);
-					data.Append(dailyHighForecastTempDisplay);
-
-	//				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator
-
-					ssd.DrawString(data.ToString());
-
-					ssd.DrawString(count++, 1);
-
-					ssd.FrameDraw();
-				} catch (Exception e) {
-					// I dunno, log it or something?
-				}
-
+				var forecastClient = new ForecastApi(settings.ApiKey);
 				// Forecast.io app give yous first thousand calls per day for free.
 				// There are 86400 seconds in a day
 				// So we can call once every say 8.64 seconds and we'll be OK
 				// (although the call itself takes a few seconds)
 				// ... so let's update once per 30 seconds.
-				Task.Delay(30000).Wait();
+				Observable.Timer(TimeSpan.FromSeconds(30))
+					.StartWith(-1)
+					.Subscribe(_ =>
+					{
+						var result = forecastClient.GetWeatherDataAsync(settings.Latitude, settings.Longitude).Result;
+
+						_currentTempToDisplay = result.Currently.Temperature.ToCelcius().ToString("00");
+						_dailyHighForecastTempDisplay = result.Daily.Days[0].MaxTemperature.ToCelcius().ToString("00");
+						_dailyLowForecastTempDisplay = result.Daily.Days[1].MinTemperature.ToCelcius().ToString("00");
+					}
+				);
+
+				Observable.Timer(TimeSpan.FromSeconds(10))
+					.StartWith(-1)
+					.Subscribe(_ =>
+					{
+						data.Clear();
+						data.Append(DateTime.Now.ToString("HHmm"));
+						data.Append(_dailyLowForecastTempDisplay);
+						data.Append(_dailyHighForecastTempDisplay);
+						//				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator
+
+						ssd.DrawString(data.ToString());
+
+						ssd.DrawString(count++, 1);
+
+						ssd.FrameDraw();
+					}
+				);
 			}
+			catch (Exception e)
+			{
+				// I dunno, log it or something?
+			}
+
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
     "ForecastIOPortable": "2.4.0",
+    "FubarCoder.RestSharp.Portable": "3.3.0",
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.1.0",
     "Rx-Main": "2.3.0-beta2"
   },

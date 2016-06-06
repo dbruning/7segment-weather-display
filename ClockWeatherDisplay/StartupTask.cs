@@ -25,15 +25,15 @@ namespace ClockWeatherDisplay
 		private string _currentTempToDisplay;
 		private string _dailyHighForecastTempDisplay;
 		private string _dailyLowForecastTempDisplay;
+		private int? _currentTimeOffsetSeconds = null;
 
 		public void Run(IBackgroundTaskInstance taskInstance)
 		{
 			_deferral = taskInstance.GetDeferral();  // get the deferral handle
 
-			int count = 0;
-
-			MAX7219 driver = new MAX7219(2);
-			SevenSegmentDisplay ssd = new SevenSegmentDisplay(driver);
+			var driver = new MAX7219(2);
+			var ssd = new SevenSegmentDisplay(driver);
+			var timeZoneFinder = new TimeZoneFinder();
 
 			// I haven't committed my Settings class to the repo because it contains my latitude, longitude and forecast.io API key.
 			// If you're trying to make this work but get errors here, just make up a Settings class with properties Latitude, Longitude, ApiKey
@@ -45,8 +45,9 @@ namespace ClockWeatherDisplay
 
 			try
 			{
-				var forecastClient = new ForecastApi(settings.ApiKey);
-				// Forecast.io app give yous first thousand calls per day for free.
+				var forecastClient = new ForecastApi(settings.ForecastIoApiKey);
+
+				// Forecast.io app gives you first thousand calls per day for free.
 				// There are 86400 seconds in a day
 				// So we can call once every say 8.64 seconds and we'll be OK
 				// (although the call itself takes a few seconds)
@@ -63,19 +64,40 @@ namespace ClockWeatherDisplay
 					}
 				);
 
+				// Google Maps API app gives you 2,500 free requests per day
+				// https://developers.google.com/maps/documentation/timezone/usage-limits
+				// ... however this will only be a factor for us when daylight savings changes, so an hourly check should be fine
+				Observable.Timer(TimeSpan.FromHours(30))
+					.StartWith(-1)
+					.Subscribe(_ =>
+					{
+						_currentTimeOffsetSeconds = timeZoneFinder.LookupCurrentOffsetSeconds(settings);
+					}
+				);
+
+				// Update the display every 10 seconds
 				Observable.Timer(TimeSpan.FromSeconds(10))
 					.StartWith(-1)
 					.Subscribe(_ =>
 					{
+						// Current time
+						DateTime? currentLocalTime = (_currentTimeOffsetSeconds != null)
+							? DateTime.UtcNow + TimeSpan.FromSeconds(_currentTimeOffsetSeconds.Value)
+							: (DateTime?)null;
+						var currentTimeDigits = (currentLocalTime != null)
+							? currentLocalTime.Value.ToString("HHmm")
+							: "    ";
+						
+
 						data.Clear();
-						data.Append(DateTime.Now.ToString("HHmm"));
+						data.Append(currentTimeDigits);
 						data.Append(_dailyLowForecastTempDisplay);
 						data.Append(_dailyHighForecastTempDisplay);
 						//				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator
 
 						ssd.DrawString(data.ToString());
 
-						ssd.DrawString(count++, 1);
+//						ssd.DrawString(count++, 1);
 
 						ssd.FrameDraw();
 					}

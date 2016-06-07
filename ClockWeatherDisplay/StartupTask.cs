@@ -26,10 +26,15 @@ namespace ClockWeatherDisplay
 		private string _dailyHighForecastTempDisplay;
 		private string _dailyLowForecastTempDisplay;
 		private int? _currentTimeOffsetSeconds = null;
+		private IDisposable _weatherTimer;
+		private IDisposable _timeZoneTimer;
+		private IDisposable _displayTimer;
+		private IBackgroundTaskInstance _taskInstance;
 
 		public void Run(IBackgroundTaskInstance taskInstance)
 		{
 			_deferral = taskInstance.GetDeferral();  // get the deferral handle
+			_taskInstance = taskInstance;
 
 			var driver = new MAX7219(2);
 			var ssd = new SevenSegmentDisplay(driver);
@@ -52,8 +57,8 @@ namespace ClockWeatherDisplay
 				// So we can call once every say 8.64 seconds and we'll be OK
 				// (although the call itself takes a few seconds)
 				// ... so let's update once per 30 seconds.
-				Observable.Timer(TimeSpan.FromSeconds(30))
-					.StartWith(-1)
+				_weatherTimer = Observable.Timer(TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(30))
+//					.StartWith(-1)
 					.Subscribe(_ =>
 					{
 						var result = forecastClient.GetWeatherDataAsync(settings.Latitude, settings.Longitude).Result;
@@ -67,7 +72,7 @@ namespace ClockWeatherDisplay
 				// Google Maps API app gives you 2,500 free requests per day
 				// https://developers.google.com/maps/documentation/timezone/usage-limits
 				// ... however this will only be a factor for us when daylight savings changes, so an hourly check should be fine
-				Observable.Timer(TimeSpan.FromHours(30))
+				_timeZoneTimer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromHours(1))
 					.StartWith(-1)
 					.Subscribe(_ =>
 					{
@@ -76,9 +81,9 @@ namespace ClockWeatherDisplay
 				);
 
 				// Update the display every 10 seconds
-				Observable.Timer(TimeSpan.FromSeconds(10))
+				_displayTimer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1))
 					.StartWith(-1)
-					.Subscribe(_ =>
+					.Subscribe(i =>
 					{
 						// Current time
 						DateTime? currentLocalTime = (_currentTimeOffsetSeconds != null)
@@ -87,10 +92,10 @@ namespace ClockWeatherDisplay
 						var currentTimeDigits = (currentLocalTime != null)
 							? currentLocalTime.Value.ToString("HHmm")
 							: "    ";
-						
 
 						data.Clear();
 						data.Append(currentTimeDigits);
+						if (i%2 == 0) data.Append(".");
 						data.Append(_dailyLowForecastTempDisplay);
 						data.Append(_dailyHighForecastTempDisplay);
 						//				if (blink = !blink) { data.Append("."); }  // add a blinking dot on bottom right as an I'm alive indicator

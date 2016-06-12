@@ -24,7 +24,7 @@ namespace ClockWeatherDisplay
 		{
 			_display.FrameClear();
 			_display.FrameDraw();
-			_display.SetBrightness(4);
+			_display.SetBrightness(2);
 
 			_display.DrawString(line1, 0);
 			_display.DrawString(line2, 1);

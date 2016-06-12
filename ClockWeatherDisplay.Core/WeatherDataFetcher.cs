@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
@@ -41,9 +42,13 @@ namespace ClockWeatherDisplay.Core
 			var next12Hours = retrieved.Hourly.Hours.Take(12).ToList();
 
 			// Calculate probability of rain in the next 12 hours
-			var probabilitiesOfNoRain = next12Hours.Select(h => 1 - h.PrecipitationProbability);
-			var totalProbabilityOfNoRain = probabilitiesOfNoRain.Aggregate(1f, (x, y) => x * y);
-			result.ProbabilityOfRainNext12Hours = 1 - totalProbabilityOfNoRain;
+			var probabilitiesOfRain = next12Hours.Select(h => h.PrecipitationProbability).ToList();
+			result.ProbabilityOfRainNext12Hours = probabilitiesOfRain.Max();
+//			var probabilitiesOfNoRain = probabilitiesOfRain.Select(r => 1 - r).ToList();
+//			var pRain = probabilitiesOfRain.Aggregate("", (x, y) => x + "," + y);
+//			var pNoRain = probabilitiesOfNoRain.Aggregate("", (x, y) => x + "," + y);
+//			var totalProbabilityOfNoRain = probabilitiesOfNoRain.Aggregate(1f, (x, y) => x * y);
+//			result.ProbabilityOfRainNext12Hours = 1 - totalProbabilityOfNoRain;
 
 			// If there is rain, calculate the total mm's of rain over the next 12 hours
 			result.PrecipitationMillimetresNext12Hours = next12Hours.Sum(h => h.PrecipitationIntensity * 25.4f);

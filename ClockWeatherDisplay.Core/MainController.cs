@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -71,9 +72,9 @@ namespace ClockWeatherDisplay.Core
 					})
 				;
 
-				// Update the display every 10 seconds
-				_displayTimer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1))
-					.StartWith(-1)
+				// Update the display
+				// (On a separate scheduler, e.g. thread, so that we always put out a new  display string, even when other queries are happening)
+				_displayTimer = Observable.Timer(TimeSpan.Zero, TimeSpan.FromSeconds(1), Scheduler.Default)
 					.Subscribe(i =>
 					{
 						try

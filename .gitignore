@@ -245,3 +245,4 @@ ModelManifest.xml
 .fake/
 ClockWeatherDisplay/Settings.cs
 ClockWeatherDisplay.v2.ncrunchsolution
+ClockWeatherDisplay.Core/Settings.cs

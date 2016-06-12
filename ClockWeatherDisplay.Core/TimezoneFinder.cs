@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.UI.Xaml.Controls.Primitives;
 using RestSharp.Portable;
 using RestSharp.Portable.HttpClient;
 
-namespace ClockWeatherDisplay
+namespace ClockWeatherDisplay.Core
 {
 	/// <summary>
 	/// Single responsibility: hold the response from Google Maps API (time zones)

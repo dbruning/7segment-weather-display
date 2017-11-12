@@ -21,7 +21,7 @@ namespace ClockWeatherDisplay.Core
 		public WeatherData FetchWeatherData()
 		{
 			var result = new WeatherData();
-			var forecastClient = new ForecastApi(_settings.ForecastIoApiKey);
+			var forecastClient = new ForecastApi(_settings.DarkSkyApiKey);
 
 			// Forecast.io app gives you first thousand calls per day for free.
 			// There are 86400 seconds in a day

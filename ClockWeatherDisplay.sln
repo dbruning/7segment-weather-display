@@ -5,6 +5,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{42F0CF9A-9E1B-414E-B572-78BD452D4D3A}"
 ProjectSection(SolutionItems) = preProject
 	Build for Raspberry Pi.ps1 = Build for Raspberry Pi.ps1
+	Trust IoT device.ps1 = Trust IoT device.ps1
+	Deploy to Raspberry Pi.ps1 = Deploy to Raspberry Pi.ps1
 EndProjectSection
 EndProject
 Global

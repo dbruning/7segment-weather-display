@@ -8,5 +8,6 @@ Push-Location $scriptDir
 # Build (from app directory)
 cd ClockWeatherDisplay.App
 
-dotnet build --runtime win10-arm --configuration release --output out 
+#dotnet build --runtime win10-arm --configuration release --output out
 
+dotnet publish --runtime win10-arm --configuration release 
